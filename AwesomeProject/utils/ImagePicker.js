@@ -1,14 +1,26 @@
-// ImagePicker.js
+// // ImagePicker.js
 import * as ImagePicker from "expo-image-picker";
+
+// export const choosePhoto = async () => {
+//   let result = await ImagePicker.launchImageLibraryAsync({
+//     savePhotos: true,
+//     mediaType: "photo",
+//   });
+
+// if (!result.canceled) {
+//   const uri = result.assets[0].uri;
+//   return uri;
+// }
+// };
 
 export const choosePhoto = async () => {
   let result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.All,
-    allowsEditing: false,
-    quality: 1,
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    base64: true,
   });
 
   if (!result.canceled) {
-    return result.assets[0].uri;
+    const uri = result.assets[0].uri;
+    return uri;
   }
 };

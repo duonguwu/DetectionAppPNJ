@@ -1,15 +1,17 @@
+// MyCamera.js
 import React, { useRef } from "react";
 import { Button, StyleSheet } from "react-native";
 import { Camera } from "expo-camera";
 
-const MyCamera = ({ onTakePhoto, style, orientation }) => {
+const MyCamera = ({ onTakePhoto, handleImage, style, orientation }) => {
   const cameraRef = useRef(null);
 
   const takePhoto = async () => {
     if (cameraRef.current) {
       const options = { quality: 0.5, base64: true };
       const data = await cameraRef.current.takePictureAsync(options);
-      onTakePhoto(data.uri, orientation);
+      const uri = data.uri;
+      onTakePhoto(uri, orientation);
     }
   };
 

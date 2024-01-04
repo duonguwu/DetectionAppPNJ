@@ -1,6 +1,6 @@
 // React Native
 import React, { useState, useEffect } from "react";
-import { View, Button, Image, StyleSheet, Platform } from "react-native";
+import { View, Button, Image, StyleSheet, Platform, ActivityIndicator } from "react-native";
 import * as ScreenOrientation from "expo-screen-orientation";
 import MyCamera from "../components/Camera";
 import { choosePhoto } from "../utils/ImagePicker";
@@ -9,64 +9,24 @@ import axios from "axios";
 
 const CameraScreen = () => {
   const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [session, setSession] = useState(null);
   const [imageOrientation, setImageOrientation] = useState(null);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [orientation, setOrientation] = useState(
     ScreenOrientation.Orientation.PORTRAIT_UP
   );
 
-  const [session, setSession] = useState(null);
 
   useEffect(() => {
     ScreenOrientation.addOrientationChangeListener(({ orientationInfo }) => {
       setOrientation(orientationInfo.orientation);
     });
-
-    // const imageAsset = Asset.fromModule(
-    //   require("../assets/khai-truong-ttkh-cong-hoa-chao-mung-pnj-tron-30-tuoi-4.jpg")
-    // );
-    // sendImageToServer(imageAsset.uri);
-
-    fetch("https://flask-pnj-detect.onrender.com/test")
-      .then((response) => response.json())
-      .then((data) => console.log(data.message))
-      .catch((error) => console.log(error));
   }, []);
 
-  // const sendImageToServer = async (uri) => {
-  //   console.log("Sending image. URI:", uri);
-  //   try {
-  //     // let fileExtension = uri.split(".").pop(); // Extract file extension
-  //     // console.log("type:", fileExtension);
-  //     const formData = new FormData();
-  //     formData.append("image", {
-  //       name: new Date() + "_predictImage",
-  //       type: "image/jpg",
-  //       uri: uri,
-  //     });
-
-  //     const response = await fetch(
-  //       "https://flask-pnj-detect.onrender.com/detect",
-  //       {
-  //         method: "POST",
-  //         body: formData,
-  //         headers: {
-  //           "Content-Type": "multipart/form-data",
-  //         },
-  //       }
-  //     );
-
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       console.log(data);
-  //     } else {
-  //       console.log("Image upload failed");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error uploading image:", error);
-  //   }
-  // };
   const sendImageToServer = async (uri) => {
+    setLoading(true)
+    setImage(null)
     console.log("Sending image. URI:", uri);
     try {
       const formData = new FormData();
@@ -81,7 +41,7 @@ const CameraScreen = () => {
 
       const response = await axios({
         method: "POST",
-        url: "https://flask-pnj-detect.onrender.com/detect",
+        url: "https://flask-elkj.onrender.com/detect",
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -90,10 +50,14 @@ const CameraScreen = () => {
 
       if (response.status === 200) {
         console.log(response.data);
+        setImage(response.data.image)
+        setLoading(false)
       } else {
+        setLoading(false)
         console.log("Image upload failed");
       }
     } catch (error) {
+      setLoading(false)
       console.error("Error uploading image:", error);
     }
   };
@@ -103,7 +67,6 @@ const CameraScreen = () => {
       {cameraVisible && (
         <MyCamera
           onTakePhoto={(uri, orientation) => {
-            setImage(uri);
             setImageOrientation(orientation);
             setCameraVisible(false);
             sendImageToServer(uri);
@@ -113,20 +76,25 @@ const CameraScreen = () => {
         />
       )}
       {!cameraVisible && (
-        <View style={styles.imageContainer}>
-          {image && (
-            <Image
-              source={{ uri: image }}
-              style={[
-                styles.image,
-                orientation === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
-                orientation === ScreenOrientation.Orientation.LANDSCAPE_RIGHT
-                  ? { transform: [{ rotate: "90deg" }] }
-                  : {},
-              ]}
-              resizeMode="contain"
-            />
-          )}
+        <View style={styles.detectContainer}>
+          <View style={styles.imageContainer}>
+            {loading && (
+              <ActivityIndicator size="large" color="#0000ff" />
+            )}
+            {image && (
+              <Image
+                source={{ uri: `data:image/png;base64,${image}` }}
+                style={[
+                  styles.image,
+                  orientation === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+                  orientation === ScreenOrientation.Orientation.LANDSCAPE_RIGHT
+                    ? { transform: [{ rotate: "90deg" }] }
+                    : {},
+                ]}
+                resizeMode="contain"
+              />
+            )}
+          </View>
           <View style={styles.buttonContainer}>
             <Button
               title="Mở camera"
@@ -134,10 +102,9 @@ const CameraScreen = () => {
               color="#C0C0C0"
             />
             <Button
-              title="Chọn ảnh từ thư viện"
+              title="Chọn ảnh"
               onPress={async () => {
                 const image = await choosePhoto();
-                setImage(image);
                 sendImageToServer(image);
               }}
               color="#C0C0C0"
@@ -160,11 +127,15 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
   },
-  imageContainer: {
+  detectContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f8f8f8",
+  },
+  loading: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
     width: "90%", // chiếm 90% chiều rộng của màn hình
@@ -174,12 +145,17 @@ const styles = StyleSheet.create({
     borderColor: "#FFD700",
     marginBottom: 20,
   },
+  imageContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8f8f8",
+  },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
     padding: 20,
-    backgroundColor: "black",
   },
 });
 

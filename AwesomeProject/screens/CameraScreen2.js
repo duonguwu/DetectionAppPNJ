@@ -1,15 +1,28 @@
 // React Native
 import React, { useState, useEffect } from "react";
-import { View, Button, Image, StyleSheet, Platform } from "react-native";
+import {
+  View,
+  Button,
+  Image,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  Dimensions,
+} from "react-native";
 import * as ScreenOrientation from "expo-screen-orientation";
 import MyCamera from "../components/Camera";
 import { choosePhoto } from "../utils/ImagePicker";
 import axios from "axios";
+import { Icon } from "react-native-elements";
+import Spinner from "react-native-loading-spinner-overlay";
+import dfimg from "../assets/img/pnj-defaut.png";
 
-const CameraScreen = ({ navigation }) => {
+const CameraScreen2 = ({ navigation }) => {
   const [image, setImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [imageOrientation, setImageOrientation] = useState(null);
-  const [session, setSession] = useState(null);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [orientation, setOrientation] = useState(
     ScreenOrientation.Orientation.PORTRAIT_UP
@@ -27,6 +40,7 @@ const CameraScreen = ({ navigation }) => {
   }, []);
 
   const sendImageToServer = async (uri) => {
+    setIsLoading(true);
     console.log("Sending image. URI:", uri);
     try {
       const formData = new FormData();
@@ -60,10 +74,16 @@ const CameraScreen = ({ navigation }) => {
     } catch (error) {
       console.error("Error uploading image:", error);
     }
+    setIsLoading(false);
   };
 
   return (
     <View style={styles.container}>
+      <Spinner
+        visible={isLoading}
+        textContent={"Predicting..."}
+        textStyle={styles.spinnerTextStyle}
+      />
       {cameraVisible && (
         <MyCamera
           onTakePhoto={(uri, orientation) => {
@@ -78,9 +98,9 @@ const CameraScreen = ({ navigation }) => {
       )}
       {!cameraVisible && (
         <View style={styles.imageContainer}>
-          {image && (
+          <View style={styles.imageView}>
             <Image
-              source={{ uri: image }}
+              source={image ? { uri: image } : dfimg}
               style={[
                 styles.image,
                 orientation === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
@@ -90,23 +110,26 @@ const CameraScreen = ({ navigation }) => {
               ]}
               resizeMode="contain"
             />
-          )}
-
+          </View>
           <View style={styles.buttonContainer}>
-            <Button
-              title="Mở camera"
+            <TouchableOpacity
+              style={styles.button}
               onPress={() => setCameraVisible(true)}
-              color="#C0C0C0"
-            />
-            <Button
-              title="Chọn ảnh từ thư viện"
+            >
+              <Icon name="camera" type="font-awesome" color="#517fa4" />
+              <Text style={styles.buttonText}>Mở camera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
               onPress={async () => {
                 const image = await choosePhoto();
                 setImage(image);
                 sendImageToServer(image);
               }}
-              color="#C0C0C0"
-            />
+            >
+              <Icon name="photo" type="font-awesome" color="#517fa4" />
+              <Text style={styles.buttonText}>Chọn ảnh từ thư viện</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}
@@ -118,7 +141,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "column",
-    backgroundColor: "black",
+    backgroundColor: "#f8f8ff",
   },
   preview: {
     flex: 1,
@@ -129,20 +152,44 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f3fcc7",
+    backgroundColor: "#f1f0fc",
+  },
+  imageView: {
+    height: "80%",
+    width: "90%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
-    width: "90%", // chiếm 90% chiều rộng của màn hình
-    aspectRatio: 4 / 6, // tỷ lệ giữa chiều rộng và chiều cao
-    marginBottom: 20,
+    flex: 1,
+    width: "100%",
+  },
+  spinnerTextStyle: {
+    color: "#FFF",
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
     padding: 20,
-    backgroundColor: "black",
+    marginBottom: 20,
+    backgroundColor: "#f1f0fc",
+  },
+  button: {
+    backgroundColor: "#f8f8ff",
+    width: 100,
+    height: 100,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#dcdcdc",
+  },
+  buttonText: {
+    color: "#020e3b",
+    marginTop: 10,
   },
 });
 
-export default CameraScreen;
+export default CameraScreen2;

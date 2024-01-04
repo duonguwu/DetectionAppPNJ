@@ -9,9 +9,9 @@ const ResultScreen = ({ route }) => {
     <View style={styles.container}>
       <Image source={{ uri: imageUri }} style={styles.image} />
       <View style={styles.infoContainer}>
-        {Object.entries(counts).map(([classId, count]) => (
-          <Text key={classId} style={styles.infoText}>
-            Class {classId}: {count} objects
+        {counts.map((item, index) => (
+          <Text key={index} style={styles.infoText}>
+            Class {item.class}: {item.count} objects
           </Text>
         ))}
       </View>

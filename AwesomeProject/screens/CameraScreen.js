@@ -4,10 +4,9 @@ import { View, Button, Image, StyleSheet, Platform } from "react-native";
 import * as ScreenOrientation from "expo-screen-orientation";
 import MyCamera from "../components/Camera";
 import { choosePhoto } from "../utils/ImagePicker";
-import { Asset } from "expo-asset";
 import axios from "axios";
 
-const CameraScreen = () => {
+const CameraScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
   const [imageOrientation, setImageOrientation] = useState(null);
   const [cameraVisible, setCameraVisible] = useState(false);
@@ -33,39 +32,6 @@ const CameraScreen = () => {
       .catch((error) => console.log(error));
   }, []);
 
-  // const sendImageToServer = async (uri) => {
-  //   console.log("Sending image. URI:", uri);
-  //   try {
-  //     // let fileExtension = uri.split(".").pop(); // Extract file extension
-  //     // console.log("type:", fileExtension);
-  //     const formData = new FormData();
-  //     formData.append("image", {
-  //       name: new Date() + "_predictImage",
-  //       type: "image/jpg",
-  //       uri: uri,
-  //     });
-
-  //     const response = await fetch(
-  //       "https://flask-pnj-detect.onrender.com/detect",
-  //       {
-  //         method: "POST",
-  //         body: formData,
-  //         headers: {
-  //           "Content-Type": "multipart/form-data",
-  //         },
-  //       }
-  //     );
-
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       console.log(data);
-  //     } else {
-  //       console.log("Image upload failed");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error uploading image:", error);
-  //   }
-  // };
   const sendImageToServer = async (uri) => {
     console.log("Sending image. URI:", uri);
     try {
@@ -90,6 +56,10 @@ const CameraScreen = () => {
 
       if (response.status === 200) {
         console.log(response.data);
+        navigation.navigate("Result", {
+          imageUri: uri,
+          counts: response.data.object_counts,
+        });
       } else {
         console.log("Image upload failed");
       }
@@ -127,6 +97,19 @@ const CameraScreen = () => {
               resizeMode="contain"
             />
           )}
+          {/* {image && (
+            <Button
+              title="Xem kết quả"
+              onPress={() =>
+                navigation.navigate("Result", {
+                  imageUri: image,
+                  counts: response.data.object_counts,
+                })
+              }
+              color="#C0C0C0"
+            />
+          )} */}
+
           <View style={styles.buttonContainer}>
             <Button
               title="Mở camera"

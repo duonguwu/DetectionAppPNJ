@@ -2,6 +2,7 @@
 import React, { useRef } from "react";
 import { Button, StyleSheet } from "react-native";
 import { Camera } from "expo-camera";
+import * as FileSystem from "expo-file-system";
 
 const MyCamera = ({ onTakePhoto, handleImage, style, orientation }) => {
   const cameraRef = useRef(null);
@@ -11,7 +12,17 @@ const MyCamera = ({ onTakePhoto, handleImage, style, orientation }) => {
       const options = { quality: 0.5, base64: true };
       const data = await cameraRef.current.takePictureAsync(options);
       const uri = data.uri;
-      onTakePhoto(uri, orientation);
+
+      // Copy the image to a temporary directory
+      const tempDirectory = FileSystem.cacheDirectory;
+      const tempFilename = `${Date.now()}.jpg`;
+      const tempUri = tempDirectory + tempFilename;
+      await FileSystem.copyAsync({
+        from: uri,
+        to: tempUri,
+      });
+
+      onTakePhoto(tempUri, orientation);
     }
   };
 
